@@ -116,13 +116,12 @@ PHP_METHOD(demo, output)
     } ZEND_HASH_FOREACH_END();
 
     // destory zval
-    if (1)
-    {
+    do {
         zval_ptr_dtor(&function_name);
         zval_ptr_dtor(&retval);
         zval_ptr_dtor(args);
         zval_ptr_dtor(item);
-    }
+    } while(0);
 
 
     RETVAL_ARR(Z_ARRVAL(final));
