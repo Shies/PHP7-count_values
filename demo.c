@@ -36,9 +36,7 @@ static int le_demo;
 zend_class_entry *demo_ce;
 
 
-char *get_contents(const char *path,
-                   const char *mode)
-{
+char *get_contents(const char *path, const char *mode) {
     FILE *fp;
     fp = fopen(path, mode);
     fseek( fp , 0 , SEEK_END );
@@ -93,8 +91,7 @@ PHP_METHOD(demo, output)
 
     array_init(return_value);
     php_explode(delim, value, return_value, limit);
-    if (Z_TYPE_P(return_value) != IS_ARRAY)
-    {
+    if (Z_TYPE_P(return_value) != IS_ARRAY) {
         php_printf("%s", "return_value must for array");
         return;
     }
@@ -106,8 +103,7 @@ PHP_METHOD(demo, output)
 
     array_init(&final);
     ZVAL_STRINGL(&function_name, "handle", strlen("handle"));
-    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(return_value), item)
-    {
+    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(return_value), item) {
         args = safe_emalloc(sizeof(zval), 2, 0);
         ZVAL_COPY_VALUE(&args[0], &final);
         ZVAL_COPY_VALUE(&args[1], item);
@@ -132,16 +128,15 @@ PHP_METHOD(demo, output)
  */
 PHP_METHOD(demo, handle)
 {
+    long limit = LONG_MAX;
     zend_string *val;
     zval *items;
+    zval *__, rv;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "aS", &items, &val) != SUCCESS)
-    {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "aS", &items, &val) != SUCCESS) {
        return;
     }
 
-    long limit = LONG_MAX;
-    zval *__, rv;
     __ = zend_read_property(demo_ce, getThis(), ZEND_STRL("__"), 1, &rv);
     zend_string *delim = zend_string_init(Z_STRVAL_P(__), Z_STRLEN_P(__), 1);
 
@@ -153,14 +148,11 @@ PHP_METHOD(demo, handle)
     zend_string *key = zend_string_init(Z_STRVAL_P(head), Z_STRLEN_P(head), 1);
 
     convert_to_long(tail);
-    if (zend_hash_exists(Z_ARRVAL_P(items), key))
-    {
+    if (zend_hash_exists(Z_ARRVAL_P(items), key)) {
         zval *one = zend_hash_find(Z_ARRVAL_P(items), key);
         zend_long total = Z_LVAL_P(one) + Z_LVAL_P(tail);
         add_assoc_long_ex(items, Z_STRVAL_P(head), Z_STRLEN_P(head), total);
-    }
-    else
-    {
+    } else {
         add_assoc_long_ex(items, Z_STRVAL_P(head), Z_STRLEN_P(head), Z_LVAL_P(tail));
     }
 
