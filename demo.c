@@ -36,18 +36,20 @@ static int le_demo;
 zend_class_entry *demo_ce;
 
 
-char *get_contents(const char *path, const char *mode) {
-    FILE *fp;
-    fp = fopen(path, mode);
-    fseek( fp , 0 , SEEK_END );
-
-    int file_size;
-    file_size = ftell( fp );
-
+char *get_contents(const char *path,
+                   const char *mode)
+{
     char *tmp;
-    fseek( fp , 0 , SEEK_SET);
-    tmp =  (char *)malloc( file_size * sizeof( char ) );
-    fread( tmp , file_size , sizeof(char) , fp);
+    int file_size;
+    FILE *fp;
+
+    fp = fopen(path, mode);
+    fseek(fp, 0, SEEK_END);
+    file_size = ftell(fp);
+
+    fseek(fp, 0, SEEK_SET);
+    tmp = (char *)malloc(file_size * sizeof(char));
+    fread(tmp, file_size, sizeof(char), fp);
 
     return tmp;
 }
@@ -129,7 +131,7 @@ PHP_METHOD(demo, output)
 PHP_METHOD(demo, handle)
 {
     long limit = LONG_MAX;
-    zend_string *val;
+    zend_string *val, *delim;
     zval *items;
     zval *__, rv;
 
@@ -138,7 +140,7 @@ PHP_METHOD(demo, handle)
     }
 
     __ = zend_read_property(demo_ce, getThis(), ZEND_STRL("__"), 1, &rv);
-    zend_string *delim = zend_string_init(Z_STRVAL_P(__), Z_STRLEN_P(__), 1);
+    delim = zend_string_init(Z_STRVAL_P(__), Z_STRLEN_P(__), 1);
 
     array_init(return_value);
     php_explode(delim, val, return_value, limit);
