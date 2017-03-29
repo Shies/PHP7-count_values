@@ -36,6 +36,21 @@ static int le_demo;
 zend_class_entry *demo_ce;
 
 
+/** {{{ ARG_INFO
+ *  */
+ZEND_BEGIN_ARG_INFO_EX(demo_void_arginfo, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(demo_construct_arginfo, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(demo_handle_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, items)
+	ZEND_ARG_INFO(0, value)
+ZEND_END_ARG_INFO()
+/* }}} */
+
+
 char *get_contents(const char *path,
                    const char *mode)
 {
