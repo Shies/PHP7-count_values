@@ -44,26 +44,25 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(demo_construct_arginfo, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(demo_handle_arginfo, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(demo_handle_arginfo, 0, 0, 2)
 	ZEND_ARG_INFO(0, items)
 	ZEND_ARG_INFO(0, value)
 ZEND_END_ARG_INFO()
 /* }}} */
 
 
-char *get_contents(const char *path,
-                   const char *mode)
+char *fileGetContents(char *path, char *mode)
 {
-    char *tmp;
-    int file_size;
     FILE *fp;
+    int file_size;
+    char *tmp;
 
     fp = fopen(path, mode);
     fseek(fp, 0, SEEK_END);
     file_size = ftell(fp);
 
     fseek(fp, 0, SEEK_SET);
-    tmp = (char *)malloc(file_size * sizeof(char));
+    tmp = (char *) malloc(file_size * sizeof(char));
     fread(tmp, file_size, sizeof(char), fp);
 
     return tmp;
@@ -85,7 +84,7 @@ PHP_METHOD(demo, __construct)
     if (Z_TYPE_P(source) == IS_NULL)
     {
         target = zend_read_property(demo_ce, self, ZEND_STRL("target"), 1, &rv);
-        content = get_contents(Z_STRVAL_P(target), "r");
+        content = fileGetContents(Z_STRVAL_P(target), "r");
         zend_update_property_string(demo_ce, self, ZEND_STRL("source"), content);
         return;
     }
@@ -121,6 +120,7 @@ PHP_METHOD(demo, output)
     array_init(&final);
     ZVAL_STRINGL(&function_name, "handle", strlen("handle"));
     ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(return_value), item) {
+
         args = safe_emalloc(sizeof(zval), 2, 0);
         ZVAL_COPY_VALUE(&args[0], &final);
         ZVAL_COPY_VALUE(&args[1], item);
@@ -146,28 +146,28 @@ PHP_METHOD(demo, output)
 PHP_METHOD(demo, handle)
 {
     long limit = LONG_MAX;
-    zend_string *val, *delim;
-    zval *items;
-    zval *__, rv;
+    zend_long total;
+    zval *items, *frist, *sep, *head, *tail, rv;
+    zend_string *val, *delim, *key;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "aS", &items, &val) != SUCCESS) {
-       return;
+        return;
     }
 
-    __ = zend_read_property(demo_ce, getThis(), ZEND_STRL("__"), 1, &rv);
-    delim = zend_string_init(Z_STRVAL_P(__), Z_STRLEN_P(__), 1);
+    sep = zend_read_property(demo_ce, getThis(), ZEND_STRL("__"), 1, &rv);
+    delim = zend_string_init(Z_STRVAL_P(sep), Z_STRLEN_P(sep), 1);
 
     array_init(return_value);
     php_explode(delim, val, return_value, limit);
 
-    zval *head = zend_hash_index_find(Z_ARRVAL_P(return_value), 0);
-    zval *tail = zend_hash_index_find(Z_ARRVAL_P(return_value), 1);
-    zend_string *key = zend_string_init(Z_STRVAL_P(head), Z_STRLEN_P(head), 1);
+    head = zend_hash_index_find(Z_ARRVAL_P(return_value), 0);
+    tail = zend_hash_index_find(Z_ARRVAL_P(return_value), 1);
+    key = zend_string_init(Z_STRVAL_P(head), Z_STRLEN_P(head), 1);
 
     convert_to_long(tail);
     if (zend_hash_exists(Z_ARRVAL_P(items), key)) {
-        zval *one = zend_hash_find(Z_ARRVAL_P(items), key);
-        zend_long total = Z_LVAL_P(one) + Z_LVAL_P(tail);
+        frist = zend_hash_find(Z_ARRVAL_P(items), key);
+        total = Z_LVAL_P(frist) + Z_LVAL_P(tail);
         add_assoc_long_ex(items, Z_STRVAL_P(head), Z_STRLEN_P(head), total);
     } else {
         add_assoc_long_ex(items, Z_STRVAL_P(head), Z_STRLEN_P(head), Z_LVAL_P(tail));
@@ -197,9 +197,9 @@ PHP_METHOD(demo, valid)
 
 
 const zend_function_entry demo_methods[] = {
-	PHP_ME(demo, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+	PHP_ME(demo, __construct, demo_construct_arginfo, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
     PHP_ME(demo, output,  NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(demo, handle,  NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(demo, handle,  demo_handle_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(demo, valid,   NULL, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
